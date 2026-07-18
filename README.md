@@ -42,4 +42,4 @@ This plugin uses [bStats](https://bstats.org/) to collect anonymous usage statis
 
 ## License
 
-Licensed under LGPL-3.0. See the [LICENSE](LICENSE) file for details.
+Licensed under the Apache License 2.0. See the [LICENSE](LICENSE) file for details.
