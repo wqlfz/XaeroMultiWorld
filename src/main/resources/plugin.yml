@@ -1,0 +1,9 @@
+main: com.wqlfz.xaeromultiworld.XaeroMultiWorldPlugin
+name: XaeroMultiWorld
+version: ${version}
+description: Server-side multiworld support for Xaero's World Map and Minimap
+website: https://wqlfz.com
+authors: [wqlfzdev]
+api-version: "1.13"
+load: STARTUP
+folia-supported: true

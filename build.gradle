@@ -1,0 +1,91 @@
+plugins {
+    id 'kr.entree.spigradle' version '2.4.2'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
+    id 'java'
+}
+
+group = project.property("group")
+version = project.property("version")
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    spigot()
+    maven {
+        name = 'spigotmc-repo'
+        url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
+    }
+    maven {
+        name = 'sonatype'
+        url = 'https://oss.sonatype.org/content/groups/public/'
+    }
+}
+
+configurations {
+    shade
+}
+
+dependencies {
+    compileOnly 'org.bstats:bstats-bukkit:3.2.1'
+    shade 'org.bstats:bstats-bukkit:3.2.1'
+    // Oldest supported API; the plugin only uses calls that exist from 1.8.8 onwards
+    compileOnly spigot(project.property("compileApiVersion"))
+}
+
+// Only used by spigradle's debug tasks; plugin.yml itself lives in src/main/resources
+spigot {
+    name = project.property("pluginName")
+    debug {
+        eula = true
+        buildVersion = project.property("mcVersion")
+    }
+}
+
+// plugin.yml is a hand-maintained resource; skip spigradle's generated one
+generateSpigotDescription.enabled = false
+
+// Only the shaded jar is a working plugin; skip the plain jar entirely
+jar {
+    enabled = false
+}
+
+shadowJar {
+    archiveClassifier = ''
+    configurations = [project.configurations.shade]
+    relocate 'org.bstats', 'com.wqlfz.xaeromultiworld.bstats'
+}
+
+// Java 8 bytecode runs on every JVM from 8 through the newest release
+def targetJavaVersion = 8
+java {
+    def javaVersion = JavaVersion.toVersion(targetJavaVersion)
+    sourceCompatibility = javaVersion
+    targetCompatibility = javaVersion
+    if (JavaVersion.current() < javaVersion) {
+        toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
+        options.release = targetJavaVersion
+    }
+}
+
+tasks {
+    assemble.dependsOn(shadowJar)
+}
+
+
+// Not sure why this is needed to debug
+// https://github.com/spigradle/spigradle/issues/84
+//tasks.withType(Copy).all { duplicatesStrategy 'exclude' }
+
+processResources {
+    def props = [version: version]
+    inputs.properties props
+    filteringCharset 'UTF-8'
+    filesMatching('plugin.yml') {
+        expand props
+    }
+}
